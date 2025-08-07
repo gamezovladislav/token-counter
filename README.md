@@ -55,8 +55,8 @@ python count_tokens.py path/to/file.txt --model gpt-4
 ```
 
 Available models:
-- OpenAI: gpt-3.5-turbo (default), gpt-4, gpt-4-turbo
-- Anthropic: claude-3-opus, claude-3-sonnet, claude-3-haiku
+- OpenAI: gpt-3.5-turbo (default), gpt-4, gpt-4o, gpt-4.1, o1, o3, o4-mini
+- Anthropic: claude-3-7-sonnet-latest, claude-3-5-haiku-latest, claude-3-5-sonnet-latest, claude-3-opus-latest, claude-sonnet-4-0, claude-opus-4-0, and many more version-specific models
 
 ### Using Anthropic Tokenizer
 
@@ -71,7 +71,7 @@ This flag simplifies token counting for Anthropic models without needing to spec
 ## Command-line Options
 
 ```
-usage: count_tokens.py [-h] [--model {gpt-3.5-turbo,gpt-4,gpt-4-turbo,claude-3-opus,claude-3-sonnet,claude-3-haiku}] [--anthropic] path
+usage: count_tokens.py [-h] [--model MODEL] [--anthropic] path
 
 Count tokens in text files for AI models
 
@@ -80,7 +80,7 @@ positional arguments:
 
 optional arguments:
   -h, --help            show this help message and exit
-  --model {gpt-3.5-turbo,gpt-4,gpt-4-turbo,claude-3-opus,claude-3-sonnet,claude-3-haiku}, -m {gpt-3.5-turbo,gpt-4,gpt-4-turbo,claude-3-opus,claude-3-sonnet,claude-3-haiku}
+  --model MODEL, -m MODEL
                         AI model for token counting (default: gpt-3.5-turbo)
   --anthropic, -a       Use Anthropic tokenizer instead of OpenAI
 ```

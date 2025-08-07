@@ -7,11 +7,10 @@ Uses tiktoken library for OpenAI models and anthropic library for Anthropic mode
 Supports processing individual files or entire directories.
 
 Usage:
-    python count_tokens.py <file_or_directory_path> [--model MODEL] [--anthropic]
+    python count_tokens.py <file_or_directory_path> [--model MODEL]
 
 Parameters:
-    --model, -m    AI model for token counting (default: gpt-3.5-turbo)
-    --anthropic, -a Use Anthropic tokenizer instead of OpenAI
+    --model, -m    AI model for token counting (default: claude-3-7-sonnet-latest)
 """
 
 import argparse
@@ -213,7 +212,7 @@ def process_directory(dir_path: str, model: str) -> Tuple[int, int, int]:
             file_path = os.path.join(root, file)
             tokens, chars = process_file(file_path, model)
             
-            if tokens > 0:
+            if tokens > 0 or chars > 0:
                 total_tokens += tokens
                 total_chars += chars
                 file_count += 1
