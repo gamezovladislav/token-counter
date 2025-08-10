@@ -1,0 +1,9 @@
+This is a test file for the token counter application.
+It contains multiple lines of text to count tokens.
+The token count will vary depending on the model used.
+
+OpenAI and Anthropic models tokenize text differently.
+This file will help us verify that the .env configuration is working correctly.
+
+We've set the default model to gpt-4o in our .env file, so this should be used
+if we don't specify a model on the command line.
