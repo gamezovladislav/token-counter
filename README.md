@@ -124,6 +124,8 @@ cp .env.example .env
 
 | Variable | Description | Example |
 |----------|-------------|---------|
+| `ANTHROPIC_API_KEY` | Anthropic API key used for Claude models | `sk-ant-...` |
+| `CLAUDE_API_KEY` | Optional alias for Anthropic API key (fallback if ANTHROPIC_API_KEY is not set) | `sk-ant-...` |
 | `OPENAI_MODELS` | Comma-separated list of available OpenAI models | `o1,o3,o4-mini,gpt-4.1,gpt-4o,gpt-4` |
 | `ANTHROPIC_MODELS` | Comma-separated list of available Anthropic models | `claude-3-7-sonnet-latest,claude-3-5-haiku-latest` |
 | `DEFAULT_MODEL` | Default model to use when not specified | `claude-3-7-sonnet-latest` |
@@ -134,6 +136,10 @@ cp .env.example .env
 
 ```
 # Token Counter Configuration
+
+# Anthropic API Key (required when using Claude models)
+ANTHROPIC_API_KEY=sk-ant-your-api-key-here
+# Optional alias if you prefer: CLAUDE_API_KEY=sk-ant-your-api-key-here
 
 # OpenAI Models (comma-separated list)
 OPENAI_MODELS=o1,o3,o4-mini,gpt-4.1,gpt-4o,gpt-4

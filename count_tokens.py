@@ -143,20 +143,25 @@ def count_tokens_in_text(text: str, model: str) -> int:
         if model in ANTHROPIC_MODELS:
             # Use anthropic for Anthropic models
             try:
-                # Create client and use messages.count_tokens method with correct format
-                client = anthropic.Anthropic()
-                # Use the provided model or fallback to a default Claude model
+                # Resolve API key explicitly to avoid auth resolution issues
+                api_key = os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("CLAUDE_API_KEY")
+                if not api_key:
+                    print(colorize("Anthropic API key not found. Set ANTHROPIC_API_KEY in your environment (.env). Falling back to approximate token counting.", "yellow"))
+                    tokens = re.findall(r'\b\w+\b|[^\w\s]', text)
+                    return len(tokens)
+                # Create client with explicit API key and use messages.count_tokens method with correct format
+                client = anthropic.Anthropic(api_key=api_key)
                 response = client.messages.count_tokens(
                     messages=[{"role": "user", "content": text}],
                     model=model
                 )
-                return response.token_count
+                return response.input_tokens
             except Exception as e:
                 # If there's an error with the token counting, use fallback method
                 print(colorize(f"Warning: Using fallback token counting method for Anthropic: {str(e)}", "yellow"))
                 # Fallback method
                 tokens = re.findall(r'\b\w+\b|[^\w\s]', text)
-                return 0
+                return len(tokens)
 
         # If model is not recognized, show error
         raise ValueError(f"Unknown model: {model}. Please use a supported model.")
@@ -164,7 +169,7 @@ def count_tokens_in_text(text: str, model: str) -> int:
         print(colorize(f"Error counting tokens: {str(e)}", "red"))
         # Fallback method if there's an error
         tokens = re.findall(r'\b\w+\b|[^\w\s]', text)
-        return 0
+        return len(tokens)
 
 def process_file(file_path: str, model: str) -> Tuple[int, int]:
     """
