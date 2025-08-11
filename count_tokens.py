@@ -101,10 +101,8 @@ IGNORE_DIRS = parse_env_list('IGNORE_DIRS', DEFAULT_IGNORE_DIRS)
 OPENAI_MODELS = parse_env_list('OPENAI_MODELS', DEFAULT_OPENAI_MODELS)
 ANTHROPIC_MODELS = parse_env_list('ANTHROPIC_MODELS', DEFAULT_ANTHROPIC_MODELS)
 
-# Set default models
-DEFAULT_OPENAI_MODEL = 'gpt-3.5-turbo'
-DEFAULT_ANTHROPIC_MODEL = 'claude-3-7-sonnet-latest'
-DEFAULT_MODEL = os.environ.get('DEFAULT_MODEL', DEFAULT_ANTHROPIC_MODEL)
+# Set default model
+DEFAULT_MODEL = os.environ.get('DEFAULT_MODEL', 'claude-3-7-sonnet-latest')
 
 # Combine all models
 ALL_MODELS = OPENAI_MODELS.union(ANTHROPIC_MODELS)
@@ -130,7 +128,7 @@ def count_tokens_in_text(text: str, model: str) -> int:
     
     Args:
         text: Text to count tokens in
-        model: AI model for token counting (default: gpt-3.5-turbo)
+        model: AI model for token counting
         
     Returns:
         int: Number of tokens, or 0 if an error occurs
