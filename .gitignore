@@ -7,3 +7,12 @@
 .env.local
 .env.dev
 .env.prod
+
+# Python files
+__pycache__/
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
