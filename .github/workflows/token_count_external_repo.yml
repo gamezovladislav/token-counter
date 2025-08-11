@@ -31,7 +31,7 @@ jobs:
           repository: ${{ inputs.target_repo }}
           ref: ${{ inputs.target_ref }}
           # For private repos, add a PAT secret with scope contents:read
-          token: ${{ secrets.REPO_READ_TOKEN }} # omit this line for public repos
+#          token: ${{ secrets.REPO_READ_TOKEN }} # omit this line for public repos
           path: target
 
       - name: Set up Python
