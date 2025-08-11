@@ -57,6 +57,7 @@ A simple yet powerful utility for counting tokens in text files for AI language 
 - 🐍 Python 3.6 or higher
 - 🟢 tiktoken (for OpenAI models)
 - 🟣 anthropic (for Anthropic models)
+- 🌱 python-dotenv (for .env file configuration)
 
 ## 🔥 Usage
 
@@ -106,7 +107,48 @@ positional arguments:
 optional arguments:
   -h, --help            show this help message and exit
   --model MODEL, -m MODEL
-                        AI model for token counting (default: claude-3-7-sonnet-latest)
+                        AI model for token counting (default: from .env or claude-3-7-sonnet-latest)
+```
+
+## ⚙️ Configuration with .env File
+
+> *Customize your token counting experience!* 🛠️
+
+You can configure the token counter using a `.env` file in the project root directory. Create a copy of the `.env.example` file and rename it to `.env`:
+
+```bash
+cp .env.example .env
+```
+
+### Available Configuration Options:
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `OPENAI_MODELS` | Comma-separated list of available OpenAI models | `o1,o3,o4-mini,gpt-4.1,gpt-4o,gpt-4` |
+| `ANTHROPIC_MODELS` | Comma-separated list of available Anthropic models | `claude-3-7-sonnet-latest,claude-3-5-haiku-latest` |
+| `DEFAULT_MODEL` | Default model to use when not specified | `claude-3-7-sonnet-latest` |
+| `IGNORE_DIRS` | Directories to ignore during processing | `.git,.idea,.vscode,__pycache__,venv` |
+| `IGNORE_EXTENSIONS` | File extensions to ignore during processing | `.jpg,.jpeg,.png,.gif,.exe` |
+
+### Example .env File:
+
+```
+# Token Counter Configuration
+
+# OpenAI Models (comma-separated list)
+OPENAI_MODELS=o1,o3,o4-mini,gpt-4.1,gpt-4o,gpt-4
+
+# Anthropic Models (comma-separated list)
+ANTHROPIC_MODELS=claude-3-7-sonnet-latest,claude-3-5-haiku-latest,claude-3-opus-latest
+
+# Default Model (must be included in one of the model lists above)
+DEFAULT_MODEL=gpt-4o
+
+# Directories to ignore (comma-separated list)
+IGNORE_DIRS=.git,.idea,.vscode,__pycache__,venv,node_modules,.venv
+
+# File extensions to ignore (comma-separated list)
+IGNORE_EXTENSIONS=.jpg,.jpeg,.png,.gif,.exe,.dll,.pyc,.pyo
 ```
 
 ## 💯 Examples

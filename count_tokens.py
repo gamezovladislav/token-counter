@@ -10,17 +10,29 @@ Usage:
     python count_tokens.py <file_or_directory_path> [--model MODEL]
 
 Parameters:
-    --model, -m    AI model for token counting (default: claude-3-7-sonnet-latest)
+    --model, -m    AI model for token counting (default: from .env or claude-3-7-sonnet-latest)
+
+Configuration:
+    The application can be configured using a .env file with the following variables:
+    - OPENAI_MODELS: Comma-separated list of available OpenAI models
+    - ANTHROPIC_MODELS: Comma-separated list of available Anthropic models
+    - DEFAULT_MODEL: Default model to use when not specified
+    - IGNORE_DIRS: Comma-separated list of directories to ignore
+    - IGNORE_EXTENSIONS: Comma-separated list of file extensions to ignore
 """
 
 import argparse
 import os
 import re
 import sys
-from typing import Tuple
+from typing import Tuple, Set
 
 import anthropic
 import tiktoken
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # ANSI colors for output
 COLORS = {
@@ -37,46 +49,62 @@ TEXT_EXTENSIONS = {
     '.txt', '.md', '.py', '.js', '.html', '.css', '.json', '.xml', '.yaml', '.yml'
 }
 
-# Binary file extensions to ignore
-IGNORE_EXTENSIONS = {
+# Helper function to parse comma-separated environment variables into sets
+def parse_env_list(env_var: str, default_set: Set[str]) -> Set[str]:
+    """Parse a comma-separated environment variable into a set of strings."""
+    value = os.environ.get(env_var)
+    if not value:
+        return default_set
+    return {item.strip() for item in value.split(',')}
+
+# Default values
+DEFAULT_IGNORE_EXTENSIONS = {
     '.jpg', '.jpeg', '.png', '.gif', '.exe', '.dll', '.pyc', '.pyo'
 }
 
-# Directories to ignore
-IGNORE_DIRS = {
+DEFAULT_IGNORE_DIRS = {
     '.git', '.idea', '.vscode', '__pycache__', 'venv', 'node_modules', '.venv'
 }
 
-# Model definitions
-OPENAI_MODELS = {
+DEFAULT_OPENAI_MODELS = {
     "o1",
     "o3",
     "o4-mini",
-    # chat
     "gpt-4.1",
     "gpt-4o",
     "gpt-4"
 }
-DEFAULT_OPENAI_MODEL = 'gpt-3.5-turbo'
 
-ANTHROPIC_MODELS = {"claude-3-7-sonnet-latest",
-                    "claude-3-7-sonnet-20250219",
-                    "claude-3-5-haiku-latest",
-                    "claude-3-5-haiku-20241022",
-                    "claude-sonnet-4-20250514",
-                    "claude-sonnet-4-0",
-                    "claude-4-sonnet-20250514",
-                    "claude-3-5-sonnet-latest",
-                    "claude-3-5-sonnet-20241022",
-                    "claude-3-5-sonnet-20240620",
-                    "claude-opus-4-0",
-                    "claude-opus-4-20250514",
-                    "claude-4-opus-20250514",
-                    "claude-opus-4-1-20250805",
-                    "claude-3-opus-latest",
-                    "claude-3-opus-20240229",
-                    "claude-3-haiku-20240307"}
-DEFAULT_ANTHROPIC_MODEL = 'claude-3-7-sonnet-latest'
+DEFAULT_ANTHROPIC_MODELS = {
+    "claude-3-7-sonnet-latest",
+    "claude-3-7-sonnet-20250219",
+    "claude-3-5-haiku-latest",
+    "claude-3-5-haiku-20241022",
+    "claude-sonnet-4-20250514",
+    "claude-sonnet-4-0",
+    "claude-4-sonnet-20250514",
+    "claude-3-5-sonnet-latest",
+    "claude-3-5-sonnet-20241022",
+    "claude-3-5-sonnet-20240620",
+    "claude-opus-4-0",
+    "claude-opus-4-20250514",
+    "claude-4-opus-20250514",
+    "claude-opus-4-1-20250805",
+    "claude-3-opus-latest",
+    "claude-3-opus-20240229",
+    "claude-3-haiku-20240307"
+}
+
+# Load configuration from environment variables
+IGNORE_EXTENSIONS = parse_env_list('IGNORE_EXTENSIONS', DEFAULT_IGNORE_EXTENSIONS)
+IGNORE_DIRS = parse_env_list('IGNORE_DIRS', DEFAULT_IGNORE_DIRS)
+OPENAI_MODELS = parse_env_list('OPENAI_MODELS', DEFAULT_OPENAI_MODELS)
+ANTHROPIC_MODELS = parse_env_list('ANTHROPIC_MODELS', DEFAULT_ANTHROPIC_MODELS)
+
+# Set default model
+DEFAULT_MODEL = os.environ.get('DEFAULT_MODEL', 'claude-3-7-sonnet-latest')
+
+# Combine all models
 ALL_MODELS = OPENAI_MODELS.union(ANTHROPIC_MODELS)
 
 
@@ -100,7 +128,7 @@ def count_tokens_in_text(text: str, model: str) -> int:
     
     Args:
         text: Text to count tokens in
-        model: AI model for token counting (default: gpt-3.5-turbo)
+        model: AI model for token counting
         
     Returns:
         int: Number of tokens, or 0 if an error occurs
@@ -235,10 +263,10 @@ def main():
     )
     parser.add_argument(
         '--model', '-m',
-        default=DEFAULT_ANTHROPIC_MODEL,
+        default=DEFAULT_MODEL,
         choices=list(ALL_MODELS),
         required=False,
-        help=f'AI model for token counting (default: {DEFAULT_ANTHROPIC_MODEL})'
+        help=f'AI model for token counting (default: {DEFAULT_MODEL})'
     )
     args = parser.parse_args()
     path = args.path
