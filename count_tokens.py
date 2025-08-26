@@ -7,12 +7,12 @@ Uses tiktoken library for OpenAI models and anthropic library for Anthropic mode
 Supports processing individual files or entire directories.
 
 Usage:
-    python count_tokens.py <file_or_directory_path> [--model MODEL] [--pretty-output | --no-pretty-output]
+    python count_tokens.py <file_or_directory_path> [--model MODEL] [--pretty-output [BOOL]]
 
 Parameters:
-    --model, -m             AI model for token counting (default: from .env or claude-3-7-sonnet-latest)
-    --pretty-output, -p     Enable colorized output (default from PRETTY_OUTPUT or True)
-    --no-pretty-output      Disable colorized output
+    --model, -m                 AI model for token counting (default: from .env or claude-3-7-sonnet-latest)
+    --pretty-output, -p [BOOL]  Enable/disable colorized output (default from PRETTY_OUTPUT or True). When provided
+                                without a value, it enables colors. Accepted values: true/false, 1/0, yes/no, on/off.
 
 Configuration:
     The application can be configured using a .env file with the following variables:
@@ -124,6 +124,21 @@ def parse_env_bool(env_var: str, default: bool) -> bool:
         return False
     # Fallback to default if unrecognized
     return default
+
+
+def parse_cli_bool(value: str) -> bool:
+    """Parse a boolean value from CLI argument string.
+    Accepts: true/false, 1/0, yes/no, y/n, on/off (case-insensitive).
+    """
+    if value is None:
+        # Should not happen when used as type=, but keep for safety
+        raise argparse.ArgumentTypeError("Expected a boolean value (true/false, 1/0, yes/no, on/off)")
+    v = str(value).strip().lower()
+    if v in {"1", "true", "yes", "y", "on"}:
+        return True
+    if v in {"0", "false", "no", "n", "off"}:
+        return False
+    raise argparse.ArgumentTypeError("Invalid boolean value for --pretty-output: use true/false, 1/0, yes/no, on/off")
 
 # Pretty output toggle (default TRUE, can be overridden by env and CLI)
 PRETTY_OUTPUT_DEFAULT = parse_env_bool("PRETTY_OUTPUT", True)
@@ -307,24 +322,23 @@ def main():
         required=False,
         help=f'AI model for token counting (default: {DEFAULT_MODEL})'
     )
-    # Pretty output flags
-    group = parser.add_mutually_exclusive_group(required=False)
-    group.add_argument(
-        '--pretty-output', '-p', dest='pretty_output', action='store_true',
-        help='Enable colorized output (default from PRETTY_OUTPUT or True)'
+    # Pretty output single option with optional boolean value
+    parser.add_argument(
+        '--pretty-output', '-p',
+        nargs='?',
+        const=True,
+        type=parse_cli_bool,
+        default=None,
+        help='Enable/disable colorized output (default from PRETTY_OUTPUT or True). When provided without a value, it enables colors.'
     )
-    group.add_argument(
-        '--no-pretty-output', dest='pretty_output', action='store_false',
-        help='Disable colorized output'
-    )
-    parser.set_defaults(pretty_output=PRETTY_OUTPUT_DEFAULT)
 
     args = parser.parse_args()
     path = args.path
     model = args.model
 
-    # Set effective pretty output based on CLI/env
-    set_pretty_output(args.pretty_output)
+    # Resolve effective pretty output: CLI value overrides env; if omitted, use env default
+    effective_pretty = PRETTY_OUTPUT_DEFAULT if args.pretty_output is None else args.pretty_output
+    set_pretty_output(effective_pretty)
     
     print(pretty_colorize("=" * 60, "blue"))
     print(pretty_colorize("  TOKEN COUNTER", "bold"))

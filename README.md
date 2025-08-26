@@ -97,7 +97,7 @@ python count_tokens.py path/to/file.txt --model gpt-4
 ## ⌨️ Command-line Options
 
 ```bash
-usage: count_tokens.py [-h] [--model MODEL] [--pretty-output | --no-pretty-output] path
+usage: count_tokens.py [-h] [--model MODEL] [--pretty-output [BOOL]] path
 
 Count tokens in text files for AI models
 
@@ -108,13 +108,18 @@ optional arguments:
   -h, --help            show this help message and exit
   --model MODEL, -m MODEL
                         AI model for token counting (default: from .env or claude-3-7-sonnet-latest)
-  --pretty-output, -p   Enable colorized output (default from PRETTY_OUTPUT or True)
-  --no-pretty-output    Disable colorized output
+  --pretty-output, -p [BOOL]
+                        Enable/disable colorized output (default from PRETTY_OUTPUT or True). When provided
+                        without a value, it enables colors. Accepted values: true/false, 1/0, yes/no, on/off.
 ```
 
 ### Pretty Output Toggle
-- CLI: use `--no-pretty-output` to disable colors, or `-p/--pretty-output` to ensure colors are enabled.
-- Environment: set `PRETTY_OUTPUT=false` (accepted values: 1/0, true/false, yes/no, on/off; default: true).
+- CLI (single property):
+  - `count_tokens.py path` -> colors ON (default from PRETTY_OUTPUT or True)
+  - `count_tokens.py --pretty-output path` -> colors ON
+  - `count_tokens.py --pretty-output false path` -> colors OFF
+  - Accepted values for BOOL: true/false, 1/0, yes/no, on/off (case-insensitive)
+- Environment: set `PRETTY_OUTPUT=false` to change the default (accepted values: 1/0, true/false, yes/no, on/off; default: true).
 
 ## ⚙️ Configuration with .env File
 
