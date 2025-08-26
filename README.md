@@ -97,7 +97,7 @@ python count_tokens.py path/to/file.txt --model gpt-4
 ## ⌨️ Command-line Options
 
 ```bash
-usage: count_tokens.py [-h] [--model MODEL] path
+usage: count_tokens.py [-h] [--model MODEL] [--pretty-output | --no-pretty-output] path
 
 Count tokens in text files for AI models
 
@@ -108,7 +108,13 @@ optional arguments:
   -h, --help            show this help message and exit
   --model MODEL, -m MODEL
                         AI model for token counting (default: from .env or claude-3-7-sonnet-latest)
+  --pretty-output, -p   Enable colorized output (default from PRETTY_OUTPUT or True)
+  --no-pretty-output    Disable colorized output
 ```
+
+### Pretty Output Toggle
+- CLI: use `--no-pretty-output` to disable colors, or `-p/--pretty-output` to ensure colors are enabled.
+- Environment: set `PRETTY_OUTPUT=false` (accepted values: 1/0, true/false, yes/no, on/off; default: true).
 
 ## ⚙️ Configuration with .env File
 
@@ -131,6 +137,7 @@ cp .env.example .env
 | `DEFAULT_MODEL` | Default model to use when not specified | `claude-3-7-sonnet-latest` |
 | `IGNORE_DIRS` | Directories to ignore during processing | `.git,.idea,.vscode,__pycache__,venv` |
 | `IGNORE_EXTENSIONS` | File extensions to ignore during processing | `.jpg,.jpeg,.png,.gif,.exe` |
+| `PRETTY_OUTPUT` | Toggle colorized console output (boolean) | `true` or `false` |
 
 ### Example .env File:
 
@@ -155,6 +162,9 @@ IGNORE_DIRS=.git,.idea,.vscode,__pycache__,venv,node_modules,.venv
 
 # File extensions to ignore (comma-separated list)
 IGNORE_EXTENSIONS=.jpg,.jpeg,.png,.gif,.exe,.dll,.pyc,.pyo
+
+# Pretty output (colors): true/false (default true)
+PRETTY_OUTPUT=true
 ```
 
 ## 💯 Examples

@@ -7,10 +7,12 @@ Uses tiktoken library for OpenAI models and anthropic library for Anthropic mode
 Supports processing individual files or entire directories.
 
 Usage:
-    python count_tokens.py <file_or_directory_path> [--model MODEL]
+    python count_tokens.py <file_or_directory_path> [--model MODEL] [--pretty-output | --no-pretty-output]
 
 Parameters:
-    --model, -m    AI model for token counting (default: from .env or claude-3-7-sonnet-latest)
+    --model, -m             AI model for token counting (default: from .env or claude-3-7-sonnet-latest)
+    --pretty-output, -p     Enable colorized output (default from PRETTY_OUTPUT or True)
+    --no-pretty-output      Disable colorized output
 
 Configuration:
     The application can be configured using a .env file with the following variables:
@@ -19,6 +21,7 @@ Configuration:
     - DEFAULT_MODEL: Default model to use when not specified
     - IGNORE_DIRS: Comma-separated list of directories to ignore
     - IGNORE_EXTENSIONS: Comma-separated list of file extensions to ignore
+    - PRETTY_OUTPUT: true/false to toggle colorized console output (default: true)
 """
 
 import argparse
@@ -107,10 +110,41 @@ DEFAULT_MODEL = os.environ.get('DEFAULT_MODEL', 'claude-3-7-sonnet-latest')
 # Combine all models
 ALL_MODELS = OPENAI_MODELS.union(ANTHROPIC_MODELS)
 
+# Boolean env parser
+
+def parse_env_bool(env_var: str, default: bool) -> bool:
+    """Parse a boolean from environment variable with common truthy/falsey values."""
+    value = os.environ.get(env_var)
+    if value is None or value == "":
+        return default
+    v = str(value).strip().lower()
+    if v in {"1", "true", "yes", "y", "on"}:
+        return True
+    if v in {"0", "false", "no", "n", "off"}:
+        return False
+    # Fallback to default if unrecognized
+    return default
+
+# Pretty output toggle (default TRUE, can be overridden by env and CLI)
+PRETTY_OUTPUT_DEFAULT = parse_env_bool("PRETTY_OUTPUT", True)
+PRETTY_OUTPUT_ENABLED = PRETTY_OUTPUT_DEFAULT
+
+
+def set_pretty_output(enabled: bool) -> None:
+    global PRETTY_OUTPUT_ENABLED
+    PRETTY_OUTPUT_ENABLED = bool(enabled)
+
 
 def colorize(text: str, color: str) -> str:
     """Adds color formatting to text."""
     return f"{COLORS.get(color, '')}{text}{COLORS['end']}"
+
+
+def pretty_colorize(text: str, color: str) -> str:
+    """Wrapper around colorize that respects the PRETTY_OUTPUT toggle."""
+    if not PRETTY_OUTPUT_ENABLED:
+        return text
+    return colorize(text, color)
 
 def is_binary_file(file_path: str) -> bool:
     """Checks if a file is binary."""
@@ -146,7 +180,7 @@ def count_tokens_in_text(text: str, model: str) -> int:
                 # Resolve API key explicitly to avoid auth resolution issues
                 api_key = os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("CLAUDE_API_KEY")
                 if not api_key:
-                    print(colorize("Anthropic API key not found. Set ANTHROPIC_API_KEY in your environment (.env). Falling back to approximate token counting.", "yellow"))
+                    print(pretty_colorize("Anthropic API key not found. Set ANTHROPIC_API_KEY in your environment (.env). Falling back to approximate token counting.", "yellow"))
                     tokens = re.findall(r'\b\w+\b|[^\w\s]', text)
                     return len(tokens)
                 # Create client with explicit API key and use messages.count_tokens method with correct format
@@ -158,7 +192,7 @@ def count_tokens_in_text(text: str, model: str) -> int:
                 return response.input_tokens
             except Exception as e:
                 # If there's an error with the token counting, use fallback method
-                print(colorize(f"Warning: Using fallback token counting method for Anthropic: {str(e)}", "yellow"))
+                print(pretty_colorize(f"Warning: Using fallback token counting method for Anthropic: {str(e)}", "yellow"))
                 # Fallback method
                 tokens = re.findall(r'\b\w+\b|[^\w\s]', text)
                 return len(tokens)
@@ -166,7 +200,7 @@ def count_tokens_in_text(text: str, model: str) -> int:
         # If model is not recognized, show error
         raise ValueError(f"Unknown model: {model}. Please use a supported model.")
     except Exception as e:
-        print(colorize(f"Error counting tokens: {str(e)}", "red"))
+        print(pretty_colorize(f"Error counting tokens: {str(e)}", "red"))
         # Fallback method if there's an error
         tokens = re.findall(r'\b\w+\b|[^\w\s]', text)
         return len(tokens)
@@ -184,7 +218,7 @@ def process_file(file_path: str, model: str) -> Tuple[int, int]:
     """
     # Check if file exists
     if not os.path.isfile(file_path):
-        print(colorize(f"Error: File not found: {file_path}", "red"))
+        print(pretty_colorize(f"Error: File not found: {file_path}", "red"))
         return 0, 0
     
     # Check file extension
@@ -203,14 +237,14 @@ def process_file(file_path: str, model: str) -> Tuple[int, int]:
         char_count = len(content)
         token_count = count_tokens_in_text(content, model)
         
-        print(f"File: {colorize(file_path, 'blue')}")
-        print(f"  Characters: {colorize(str(char_count), 'green')}")
-        print(f"  Tokens: {colorize(str(token_count), 'yellow')}")
+        print(f"File: {pretty_colorize(file_path, 'blue')}")
+        print(f"  Characters: {pretty_colorize(str(char_count), 'green')}")
+        print(f"  Tokens: {pretty_colorize(str(token_count), 'yellow')}")
         
         return token_count, char_count
     
     except Exception as e:
-        print(colorize(f"Error processing file {file_path}: {str(e)}", "red"))
+        print(pretty_colorize(f"Error processing file {file_path}: {str(e)}", "red"))
         return 0, 0
 
 
@@ -231,11 +265,11 @@ def process_directory(dir_path: str, model: str) -> Tuple[int, int, int]:
     
     # Check if a directory exists
     if not os.path.isdir(dir_path):
-        print(colorize(f"Error: Directory not found: {dir_path}", "red"))
+        print(pretty_colorize(f"Error: Directory not found: {dir_path}", "red"))
         return total_tokens, total_chars, file_count
     
-    print(colorize(f"\nProcessing directory: {dir_path}", "bold"))
-    print(colorize(f"Using model: {model}", "blue"))
+    print(pretty_colorize(f"\nProcessing directory: {dir_path}", "bold"))
+    print(pretty_colorize(f"Using model: {model}", "blue"))
     
     for root, dirs, files in os.walk(dir_path):
         # Exclude ignored directories
@@ -273,35 +307,50 @@ def main():
         required=False,
         help=f'AI model for token counting (default: {DEFAULT_MODEL})'
     )
+    # Pretty output flags
+    group = parser.add_mutually_exclusive_group(required=False)
+    group.add_argument(
+        '--pretty-output', '-p', dest='pretty_output', action='store_true',
+        help='Enable colorized output (default from PRETTY_OUTPUT or True)'
+    )
+    group.add_argument(
+        '--no-pretty-output', dest='pretty_output', action='store_false',
+        help='Disable colorized output'
+    )
+    parser.set_defaults(pretty_output=PRETTY_OUTPUT_DEFAULT)
+
     args = parser.parse_args()
     path = args.path
     model = args.model
+
+    # Set effective pretty output based on CLI/env
+    set_pretty_output(args.pretty_output)
     
-    print(colorize("=" * 60, "blue"))
-    print(colorize("  TOKEN COUNTER", "bold"))
-    print(colorize(f"  Model: {model}", "bold"))
-    print(colorize("=" * 60, "blue"))
+    print(pretty_colorize("=" * 60, "blue"))
+    print(pretty_colorize("  TOKEN COUNTER", "bold"))
+    print(pretty_colorize(f"  Model: {model}", "bold"))
+    print(pretty_colorize("=" * 60, "blue"))
     
     if os.path.isfile(path):
         tokens, chars = process_file(path, model)
         
-        print(colorize("\nSummary:", "bold"))
-        print(f"Characters: {colorize(format_number(chars), 'green')}")
-        print(f"Tokens: {colorize(format_number(tokens), 'yellow')}")
+        print(pretty_colorize("\nSummary:", "bold"))
+        print(f"Characters: {pretty_colorize(format_number(chars), 'green')}")
+        print(f"Tokens: {pretty_colorize(format_number(tokens), 'yellow')}")
         
     elif os.path.isdir(path):
         total_tokens, total_chars, file_count = process_directory(path, model)
         
-        print(colorize("\nSummary:", "bold"))
-        print(f"Files processed: {colorize(str(file_count), 'blue')}")
-        print(f"Total characters: {colorize(format_number(total_chars), 'green')}")
-        print(f"Total tokens: {colorize(format_number(total_tokens), 'yellow')}")
+        print(pretty_colorize("\nSummary:", "bold"))
+        print(f"Files processed: {pretty_colorize(str(file_count), 'blue')}")
+        print(f"Total characters: {pretty_colorize(format_number(total_chars), 'green')}")
+        print(f"Total tokens: {pretty_colorize(format_number(total_tokens), 'yellow')}")
         
     else:
-        print(colorize(f"Error: Path does not exist: {path}", "red"))
+        print(pretty_colorize(f"Error: Path does not exist: {path}", "red"))
         sys.exit(1)
     
-    print(colorize("=" * 60, "blue"))
+    print(pretty_colorize("=" * 60, "blue"))
 
 
 if __name__ == "__main__":
