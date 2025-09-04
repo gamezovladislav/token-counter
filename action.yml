@@ -49,3 +49,20 @@ runs:
         echo "raw_output<<EOF" >> "$GITHUB_OUTPUT"
         cat "$OUT_FILE" >> "$GITHUB_OUTPUT"
         echo "EOF" >> "$GITHUB_OUTPUT"
+
+    - name: Set job summary
+      if: always()
+      shell: bash
+      run: |
+        echo "## Token Count Summary" >> $GITHUB_STEP_SUMMARY
+        echo "Repository: ${{ inputs.target_repo }}" >> $GITHUB_STEP_SUMMARY
+        echo "Ref: ${{ inputs.target_ref }}" >> $GITHUB_STEP_SUMMARY
+        echo "Model: ${{ inputs.model }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "<details><summary>Click to expand raw output</summary>" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo '```text' >> $GITHUB_STEP_SUMMARY
+        cat token_summary.txt >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "</details>" >> $GITHUB_STEP_SUMMARY
