@@ -242,7 +242,7 @@ def process_file(file_path: str, model: str) -> Tuple[int, int]:
         return 0, 0
     
     # Check if a file is a text
-    if file_ext not in TEXT_EXTENSIONS and is_binary_file(file_path):
+    if file_ext not in TEXT_EXTENSIONS or is_binary_file(file_path):
         return 0, 0
     
     try:
