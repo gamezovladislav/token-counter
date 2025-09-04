@@ -47,11 +47,6 @@ COLORS = {
     'end': '\033[0m'
 }
 
-# Common text file extensions
-TEXT_EXTENSIONS = {
-    '.txt', '.md', '.py', '.js', '.html', '.css', '.json', '.xml', '.yaml', '.yml'
-}
-
 # Helper function to parse comma-separated environment variables into sets
 def parse_env_list(env_var: str, default_set: Set[str]) -> Set[str]:
     """Parse a comma-separated environment variable into a set of strings."""
@@ -242,7 +237,7 @@ def process_file(file_path: str, model: str) -> Tuple[int, int]:
         return 0, 0
     
     # Check if a file is a text
-    if file_ext not in TEXT_EXTENSIONS or is_binary_file(file_path):
+    if is_binary_file(file_path):
         return 0, 0
     
     try:

@@ -55,8 +55,8 @@ runs:
       shell: bash
       run: |
         echo "## Token Count Summary" >> $GITHUB_STEP_SUMMARY
-        echo "Repository: ${{ inputs.target_repo }}" >> $GITHUB_STEP_SUMMARY
-        echo "Ref: ${{ inputs.target_ref }}" >> $GITHUB_STEP_SUMMARY
+        echo "Repository: ${{ github.repository }}" >> $GITHUB_STEP_SUMMARY
+        echo "Ref: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
         echo "Model: ${{ inputs.model }}" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "<details><summary>Click to expand raw output</summary>" >> $GITHUB_STEP_SUMMARY
