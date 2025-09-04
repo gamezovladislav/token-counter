@@ -310,6 +310,131 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
+
+## 🧩 Usage as GitHub Action
+
+> This repository can be used as a step (composite action) in other repositories.
+>
+> It's recommended to pin the version: `@v1` or specific release `@v1.2.3`. For details, see VERSIONING.md.
+
+### Option A. Direct action usage in workflow
+
+```yaml
+name: Token Count
+on:
+  workflow_dispatch:
+
+jobs:
+  count:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Count tokens
+        id: token_counter
+        uses: gamezovladislav/token-counter@v0.1
+        with:
+          path: .
+          model: o3
+          pretty_output: 'false'
+
+      - name: Upload summary artifact (optional)
+        uses: actions/upload-artifact@v4
+        with:
+          name: token-summary
+          path: ${{ steps.token_counter.outputs.summary_file }}
+```
+
+Input parameters:
+- path — path within repository for analysis (default: '.')
+- model — tokenizer model identifier (e.g., gpt-4o, gpt-4, claude-3-7-sonnet-latest)
+- pretty_output — true/false, enable colored output (false is better for artifacts)
+
+Action provides outputs:
+- raw_output — string with raw output
+- summary_file — path to generated results file
+
+### Option B. Reusable workflow (workflow_call)
+
+This repository includes a ready-to-use reusable workflow `.github/workflows/token_count_reusable.yml`.
+You can call it from another repository like this:
+
+```yaml
+name: Token Count via Reusable
+on:
+  workflow_dispatch:
+
+jobs:
+  call-token-count:
+    uses: <owner>/<repo>/.github/workflows/token_count_reusable.yml@v1  # replace owner/repo
+    with:
+      path: .
+      model: gpt-4o
+```
+
+### Option C. Token counting in EXTERNAL repository
+
+To count tokens in an external repository, you need to checkout it during the job and specify the path to it:
+
+```yaml
+name: Token Count (external repo)
+on:
+  workflow_dispatch:
+    inputs:
+      target_repo:
+        description: "owner/repo of target repository"
+        required: true
+        type: string
+      target_ref:
+        description: "branch/tag/sha (default: main)"
+        required: false
+        default: main
+        type: string
+
+jobs:
+  count:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout action repo
+        uses: actions/checkout@v4
+
+      - name: Checkout target repository
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.target_repo }}
+          ref: ${{ inputs.target_ref }}
+          path: target
+          # For private repos add PAT with contents:read scope
+          # token: ${{ secrets.REPO_READ_TOKEN }}
+
+      - name: Count tokens in target
+        uses: ./
+        with:
+          path: target
+          model: gpt-4o
+          pretty_output: 'false'
+
+      - name: Upload result artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: token-summary
+          path: token_summary.txt
+```
+
+Notes:
+- For private external repositories use personal token `REPO_READ_TOKEN` with `contents:read` scope.
+- Supported models from predefined lists (see count_tokens.py). Specifying an unknown model will cause argument validation error.
+
+### Quick start in this repository
+
+- Run manually the workflow `Token Count (current repo)` in the Actions section.
+- Or call the reusable workflow `token_count_reusable.yml` from another repository.
+
+### Versioning
+
+Versioning scheme and release publication recommendations are described in the VERSIONING.md file. Please pin the Action to `@v1` or to a specific release tag.
+
 ---
 
 <div align="center">
