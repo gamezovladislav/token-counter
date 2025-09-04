@@ -44,12 +44,28 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run token counter on the target repo
+      - name: Run token counter on the target repo (plain text)
         run: |
-          python count_tokens.py target --model "${{ inputs.model }}" > token_summary.txt
+          python count_tokens.py target --model "${{ inputs.model }}" --pretty-output false > token_summary.txt
 
       - name: Upload result artifact
         uses: actions/upload-artifact@v4
         with:
           name: token-summary
           path: token_summary.txt
+
+      - name: Set job summary
+        if: always()
+        run: |
+          echo "## Token Count Summary" >> $GITHUB_STEP_SUMMARY
+          echo "Repository: ${{ inputs.target_repo }}" >> $GITHUB_STEP_SUMMARY
+          echo "Ref: ${{ inputs.target_ref }}" >> $GITHUB_STEP_SUMMARY
+          echo "Model: ${{ inputs.model }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "<details><summary>Click to expand raw output</summary>" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo '```text' >> $GITHUB_STEP_SUMMARY
+          cat token_summary.txt >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "</details>" >> $GITHUB_STEP_SUMMARY
