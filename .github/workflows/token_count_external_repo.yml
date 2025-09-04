@@ -15,7 +15,7 @@ on:
       model:
         description: "Tokenizer model (use OpenAI model to avoid API calls)"
         required: false
-        default: "gpt-4o-mini-2024-07-18"
+        default: "o3"
         type: string
 
 jobs:

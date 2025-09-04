@@ -1,0 +1,51 @@
+name: "Token Counter"
+description: "Count tokens in files or directories for AI models (OpenAI/Anthropic)"
+author: "token-counter maintainers"
+
+inputs:
+  path:
+    description: "File or directory path to analyze (relative to workspace)"
+    required: false
+    default: "."
+  model:
+    description: "Tokenizer model identifier (use an OpenAI model like gpt-4o to avoid API calls)"
+    required: false
+    default: "o3"
+  pretty_output:
+    description: "Enable colorized output (true/false). Prefer false for artifacts/summaries."
+    required: false
+    default: "false"
+
+outputs:
+  raw_output:
+    description: "Raw output of the token counter"
+    value: ${{ steps.run-token-counter.outputs.raw_output }}
+  summary_file:
+    description: "Path to the generated summary file"
+    value: ${{ steps.run-token-counter.outputs.summary_file }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+
+    - name: Install dependencies
+      shell: bash
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - id: run-token-counter
+      name: Run token counter
+      shell: bash
+      run: |
+        set -e
+        OUT_FILE="token_summary.txt"
+        python count_tokens.py "${{ inputs.path }}" --model "${{ inputs.model }}" --pretty-output ${{ inputs.pretty_output }} > "$OUT_FILE"
+        echo "summary_file=$OUT_FILE" >> "$GITHUB_OUTPUT"
+        echo "raw_output<<EOF" >> "$GITHUB_OUTPUT"
+        cat "$OUT_FILE" >> "$GITHUB_OUTPUT"
+        echo "EOF" >> "$GITHUB_OUTPUT"
